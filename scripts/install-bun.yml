@@ -4,9 +4,8 @@ args:
   version: "" # Latest version by default
 script: |
   if [ -z "{{ args.version }}" ]; then
-    args = ""
+    curl -fsSL https://bun.sh/install | bash
   else
-    args = "-s \"bun-v{{ args.version }}\""
+    curl -fsSL https://bun.sh/install | bash -s "bun-v{{ args.version }}"
   fi
-  curl -fsSL https://bun.sh/install | bash $args
   source ~/.bashrc
