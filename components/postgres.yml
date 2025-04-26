@@ -1,0 +1,55 @@
+- name: postgres
+  image: postgres
+  tag: "17.4"
+  ports:
+    - name: postgres
+      number: 5432
+  env:
+    POSTGRES_PASSWORD: postgres
+    PGDATA: /var/lib/postgresql/data/pgdata
+  volumes:
+    - name: postgres-data
+      mountPath: /var/lib/postgresql/data
+- name: pgadmin
+  image: dpage/pgadmin4
+  tag: "9.2"
+  ports:
+    - name: pgadmin
+      number: 34311
+      ingress:
+        subdomain: pgadmin
+  env:
+    PGADMIN_DEFAULT_EMAIL: admin@workspace.com
+    PGADMIN_DEFAULT_PASSWORD: "admin"
+    PGADMIN_LISTEN_PORT: "{{ pgadmin.ports.pgadmin.number }}"
+    PGADMIN_REPLACE_SERVERS_ON_STARTUP: "true"
+    PGADMIN_CONFIG_PROXY_X_FOR_COUNT: "2"
+    PGADMIN_CONFIG_PROXY_X_PROTO_COUNT: "2"
+    PGADMIN_CONFIG_PROXY_X_HOST_COUNT: "2"
+    PGADMIN_CONFIG_PROXY_X_PORT_COUNT: "2"
+    PGADMIN_CONFIG_PROXY_X_PREFIX_COUNT: "2"
+    PGADMIN_CONFIG_SERVER_MODE: "False"
+    PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
+    PGADMIN_CONFIG_ENHANCED_COOKIE_PROTECTION: "False"
+  files:
+    servers:
+      mountPath: /pgadmin4/servers.json
+      content: |
+        {
+            "Servers": {
+                "1": {
+                    "Name": "Local DB",
+                    "Group": "Servers",
+                    "Username": "postgres",
+                    "PassFile": "/pgadmin4/pgpass.file",
+                    "Host": "127.0.0.1",
+                    "Port": {{ postgres.ports.postgres.number }},
+                    "SSLMode": "prefer",
+                    "MaintenanceDB": "postgres"
+                }
+            }
+        }
+    pass:
+      mountPath: /pgadmin4/pgpass.file
+      content: |
+        127.0.0.1:{{ postgres.ports.postgres.number }}:postgres:postgres:postgres 
